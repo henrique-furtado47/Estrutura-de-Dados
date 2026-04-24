@@ -1,15 +1,24 @@
+// Henrique Furtado
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+#include <termios.h>
+
+
 
 typedef struct Node
 {
     char nome[50];
+    int idade;
+    float renda;
+    int prioritario;
     struct Node *proximo;
     struct Node *anterior;
 } Node;
 
-Node *criarElemento(const char *nome)
+Node *criarElemento(const char *nome, int idade, float renda, int prioritario)
 {
     Node *novo = malloc(sizeof(Node));
     if (!novo) {
@@ -17,6 +26,9 @@ Node *criarElemento(const char *nome)
         return NULL;
     }
     strcpy(novo->nome, nome);
+    novo->idade = idade;
+    novo->renda = renda;
+    novo->prioritario = prioritario;
     novo->proximo = novo;
     novo->anterior = novo;
     return novo;
@@ -27,8 +39,17 @@ Node *inserirElemento(Node *inicio)
     char nome[50];
     printf("Digite o nome: ");
     scanf("%49s", nome);
+    int idade;
+    printf("Digite a idade: ");
+    scanf("%d", &idade);
+    float renda;
+    printf("Digite a renda: ");
+    scanf("%f", &renda);
+    int prioritario;
+    printf("Digite o status de prioridade (0 ou 1): ");
+    scanf("%d", &prioritario);
 
-    Node *novo = criarElemento(nome);
+    Node *novo = criarElemento(nome, idade, renda, prioritario);
     if (!novo)
         return inicio;
 
@@ -90,7 +111,6 @@ Node *removerElemento(Node *inicio)
         }
         if (atual != inicio)
         {
-            /* Sempre religa os dois lados */
             atual->anterior->proximo = atual->proximo;
             atual->proximo->anterior = atual->anterior;
             free(atual);
@@ -103,7 +123,6 @@ Node *removerElemento(Node *inicio)
     return inicio;
 }
 
-/* Exibe todos os elementos da lista. */
 void listar(Node *inicio)
 {
     if (inicio == NULL) {
@@ -116,6 +135,9 @@ void listar(Node *inicio)
     int i = 1;
     do {
         printf("%d. %s\n", i++, atual->nome);
+        printf("   Idade: %d\n", atual->idade);
+        printf("   Renda: R$%.2f\n", atual->renda);
+        printf("   Prioritário: %s\n---------------\n", atual->prioritario ? "Sim" : "Não");
         atual = atual->proximo;
     } while (atual != inicio);
     printf("---------------\n");
@@ -132,9 +154,34 @@ void listarReverso(Node *inicio)
     printf("---- Lista Reversa ----\n");
     do {
         printf("%d. %s\n", i++, atual->nome);
+        printf("   Idade: %d\n", atual->idade);
+        printf("   Renda: R$%.2f\n", atual->renda);
+        printf("   Prioritário: %s\n---------------\n", atual->prioritario ? "Sim" : "Não");
         atual = atual->anterior;
     } while (atual != inicio->anterior);  /* para quando voltar ao ultimo */
     printf("----------------------\n");
+}
+
+static struct termios old_tio;
+
+void setup_terminal_leitura_direta(void) {
+    struct termios new_tio;
+    tcgetattr(STDIN_FILENO, &old_tio);
+    new_tio = old_tio;
+    new_tio.c_lflag &= (~ICANON & ~ECHO);
+    tcsetattr(STDIN_FILENO, TCSANOW, &new_tio);
+}
+
+void restore_terminal_original(void) {
+    tcsetattr(STDIN_FILENO, TCSANOW, &old_tio);
+}
+
+int getch(void) {
+    int ch;
+    setup_terminal_leitura_direta();
+    ch = getchar();
+    restore_terminal_original();
+    return ch;
 }
 
 void navegar(Node *inicio)
@@ -145,21 +192,52 @@ void navegar(Node *inicio)
     }
 
     Node *cursor = inicio;
-    int opcao_cursor;
-    do
-    {
-        printf("Cursor: %s\n", cursor->nome);
-        printf("0 SAI\n<- 1 Esquerda ||  2 Direita ->\n");
-        printf("Escolha uma opcao: ");
-        scanf("%d", &opcao_cursor);
-        system("clear");
-        switch (opcao_cursor)
-        {
-            case 1: cursor = cursor->anterior; break;
-            case 2: cursor = cursor->proximo;  break;
-        }
-    } while (opcao_cursor != 0);
+    int ch;
 
+    while (1)
+    {   
+        system("clear");
+        printf("---------------\n");
+        printf("   Anterior: %s\n", cursor->anterior->nome);
+        printf("   Idade: %d\n", cursor->anterior->idade);
+        printf("   Renda: R$%.2f\n", cursor->anterior->renda);
+        printf("   Prioritário: %s\n", cursor->anterior->prioritario ? "Sim" : "Não");
+        printf("---------------\n");
+        printf(">>  Cursor: %s <<\n", cursor->nome);
+        printf("    Idade: %d\n", cursor->idade);
+        printf("    Renda: R$%.2f\n", cursor->renda);
+        printf("    Prioritário: %s\n", cursor->prioritario ? "Sim" : "Não");
+        printf("---------------\n");
+        printf("   Próximo: %s\n", cursor->proximo->nome);
+        printf("   Idade: %d\n", cursor->proximo->idade);
+        printf("   Renda: R$%.2f\n", cursor->proximo->renda);
+        printf("   Prioritário: %s\n", cursor->proximo->prioritario ? "Sim" : "Não");
+        printf("---------------\n\n");
+
+        printf("Use as SETAS para navegar | Pressione ESC para sair\n");
+        
+        ch = getch();
+
+        if (ch == 27) {
+            int next_ch1 = getch();
+            if (next_ch1 == '[') {
+                int next_ch2 = getch();
+                switch (next_ch2) {
+                    case 'A':
+                        cursor = cursor->anterior;
+                        break;
+                    case 'B':
+                        cursor = cursor->proximo;
+                        break;
+                }
+            } else {
+                ungetc(next_ch1, stdin);
+                break; 
+            }
+        }
+    }
+
+    system("clear");
     return;
 }
 int main(void)

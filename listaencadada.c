@@ -1,14 +1,18 @@
+// Henrique Furtado
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 typedef struct Elemento {
     char nome[50];
+    int idade;
+    float renda;
+    int prioritario;
     struct Elemento *proximo;
 } Elemento;
 
-/* Cria um novo elemento com o nome informado. Retorna NULL se falhar. */
-Elemento* criarElemento(const char *nome)
+Elemento* criarElemento(const char *nome, int idade, float renda, int prioritario)
 {
     Elemento *novo = malloc(sizeof(Elemento));
     if (!novo) {
@@ -16,28 +20,34 @@ Elemento* criarElemento(const char *nome)
         return NULL;
     }
     strcpy(novo->nome, nome);
+    novo->idade = idade;
+    novo->renda = renda;
+    novo->prioritario = prioritario;
     novo->proximo = NULL;
     return novo;
 }
 
-/* Insere um novo nome na lista mantendo a ordem alfabetica. */
 Elemento* inserir(Elemento *inicio)
 {
     char nome[50];
     printf("Digite o nome: ");
     scanf("%49s", nome);
+    printf("Digite a idade: ");
+    scanf("%d", &idade);
+    printf("Digite a renda: ");
+    scanf("%f", &renda);
+    printf("Digite o status de prioridade (0 ou 1): ");
+    scanf("%d", &prioritario);
 
-    Elemento *novo = criarElemento(nome);
+    Elemento *novo = criarElemento(nome, idade, renda, prioritario);
     if (!novo)
         return inicio;
 
-    /* Caso 1: lista vazia ou o novo nome vem antes do primeiro */
     if (inicio == NULL || strcmp(nome, inicio->nome) < 0) {
         novo->proximo = inicio;
         return novo;
     }
 
-    /* Caso 2: percorre ate achar a posicao correta */
     Elemento *atual = inicio;
     while (atual->proximo != NULL && strcmp(atual->proximo->nome, nome) < 0) {
         atual = atual->proximo;
@@ -48,7 +58,6 @@ Elemento* inserir(Elemento *inicio)
     return inicio;
 }
 
-/* Remove a primeira ocorrencia do nome informado. */
 Elemento* remover(Elemento *inicio)
 {
     if (inicio == NULL) {
@@ -84,7 +93,6 @@ Elemento* remover(Elemento *inicio)
     return inicio;
 }
 
-/* Exibe todos os elementos da lista. */
 void listar(Elemento *inicio)
 {
     if (inicio == NULL) {
@@ -97,12 +105,14 @@ void listar(Elemento *inicio)
     int i = 1;
     while (atual != NULL) {
         printf("%d. %s\n", i++, atual->nome);
+        printf("   Idade: %d\n", atual->idade);
+        printf("   Renda: %.2f\n", atual->renda);
+        printf("   Prioritário: %s\n---------------\n", atual->prioritario ? "Sim" : "Não");
         atual = atual->proximo;
     }
     printf("---------------\n");
 }
 
-/* Libera toda a memoria ocupada pela lista. */
 void liberar(Elemento *inicio)
 {
     while (inicio != NULL) {
