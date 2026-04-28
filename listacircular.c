@@ -82,84 +82,60 @@ Node *inserirElemento(Node *inicio)
 
     return inicio;    
 }
-Node *removerElemento(Node *inicio)
-{
-    char nome[50];
-    printf("Digite o nome a ser removido: ");
-    scanf("%49s", nome);
 
-    if (strcmp(inicio->nome, nome) == 0)
-    {
-        /* Se é o unico nó, libera e retorna NULL */
-        if (inicio->proximo == inicio) {
-            free(inicio);
-            return NULL;
-        }
-        /* Religa o ultimo com o segundo */
-        Node *temp = inicio;
-        inicio->anterior->proximo = inicio->proximo;  // ultimo->frente = segundo
-        inicio->proximo->anterior = inicio->anterior;  // segundo->tras = ultimo
-        inicio = inicio->proximo;                       // segundo vira o novo inicio
-        free(temp);
+Node *removerPorNome(Node *inicio, const char *nome)
+{
+    if (inicio == NULL) {
+        return NULL;
     }
-    else
-    {
-        Node *atual = inicio->proximo;
-        while (atual != inicio && strcmp(atual->nome, nome) != 0)
-        {
-            atual = atual->proximo;
-        }
-        if (atual != inicio)
-        {
+
+    Node *atual = inicio;
+
+    do {
+        if (strcmp(atual->nome, nome) == 0) {
+            if (atual->proximo == atual) {
+                free(atual);
+                return NULL;
+            }
+
             atual->anterior->proximo = atual->proximo;
             atual->proximo->anterior = atual->anterior;
+
+            if (atual == inicio) {
+                inicio = atual->proximo;
+            }
+
             free(atual);
+            return inicio;
         }
-        else
-        {
-            printf("\"%s\" nao encontrado.\n", nome);
-        }
-    }
+
+        atual = atual->proximo;
+    } while (atual != inicio);
+
+    printf("\"%s\" nao encontrado.\n", nome);
     return inicio;
 }
 
-void listar(Node *inicio)
+Node *removerAtual(Node *inicio, Node *alvo)
 {
-    if (inicio == NULL) {
-        printf("Lista vazia.\n");
-        return;
+    if (inicio == NULL || alvo == NULL) {
+        return inicio;
     }
 
-    printf("---- Lista ----\n");
-    Node *atual = inicio;
-    int i = 1;
-    do {
-        printf("%d. %s\n", i++, atual->nome);
-        printf("   Idade: %d\n", atual->idade);
-        printf("   Renda: R$%.2f\n", atual->renda);
-        printf("   Prioritário: %s\n---------------\n", atual->prioritario ? "Sim" : "Não");
-        atual = atual->proximo;
-    } while (atual != inicio);
-    printf("---------------\n");
-}
-
-void listarReverso(Node *inicio)
-{
-    if (inicio == NULL) {
-        printf("Lista vazia.\n");
-        return;
+    if (alvo->proximo == alvo) {
+        free(alvo);
+        return NULL;
     }
-    Node *atual = inicio->anterior;  /* comeca no ultimo */
-    int i = 1;
-    printf("---- Lista Reversa ----\n");
-    do {
-        printf("%d. %s\n", i++, atual->nome);
-        printf("   Idade: %d\n", atual->idade);
-        printf("   Renda: R$%.2f\n", atual->renda);
-        printf("   Prioritário: %s\n---------------\n", atual->prioritario ? "Sim" : "Não");
-        atual = atual->anterior;
-    } while (atual != inicio->anterior);  /* para quando voltar ao ultimo */
-    printf("----------------------\n");
+
+    alvo->anterior->proximo = alvo->proximo;
+    alvo->proximo->anterior = alvo->anterior;
+
+    if (alvo == inicio) {
+        inicio = alvo->proximo;
+    }
+
+    free(alvo);
+    return inicio;
 }
 
 static struct termios old_tio;
@@ -184,15 +160,54 @@ int getch(void) {
     return ch;
 }
 
-void navegar(Node *inicio)
+enum Tecla {
+    TECLA_SETA_CIMA = 1001,
+    TECLA_SETA_BAIXO = 1002,
+    TECLA_INSERT = 1003,
+    TECLA_DELETE = 1004
+};
+
+int ler_tecla(void)
+{
+    int ch = getch();
+
+    if (ch != 27) {
+        return ch;
+    }
+
+    int ch2 = getch();
+    if (ch2 != '[') {
+        return 27;
+    }
+
+    int ch3 = getch();
+
+    switch (ch3) {
+        case 'A':
+            return TECLA_SETA_CIMA;
+        case 'B':
+            return TECLA_SETA_BAIXO;
+        case '2':
+            getch();
+            return TECLA_INSERT;
+        case '3':
+            getch();
+            return TECLA_DELETE;
+        default:
+            return ch3;
+    }
+}
+
+Node *navegar(Node *inicio)
 {
     if (inicio == NULL) {
         printf("Lista vazia.\n");
-        return;
+        printf("Pressione qualquer tecla para inserir o primeiro elemento.\n");
+        getch();
+        inicio = inserirElemento(inicio);
     }
 
     Node *cursor = inicio;
-    int ch;
 
     while (1)
     {   
@@ -214,61 +229,43 @@ void navegar(Node *inicio)
         printf("   Prioritário: %s\n", cursor->proximo->prioritario ? "Sim" : "Não");
         printf("---------------\n\n");
 
-        printf("Use as SETAS para navegar | Pressione ESC para sair\n");
-        
-        ch = getch();
+        printf("Use as SETAS para navegar | INSERT para inserir | DELETE para remover | Pressione ESC para sair\n");
 
-        if (ch == 27) {
-            int next_ch1 = getch();
-            if (next_ch1 == '[') {
-                int next_ch2 = getch();
-                switch (next_ch2) {
-                    case 'A':
-                        cursor = cursor->anterior;
-                        break;
-                    case 'B':
-                        cursor = cursor->proximo;
-                        break;
-                }
-            } else {
-                ungetc(next_ch1, stdin);
-                break; 
+        int tecla = ler_tecla();
+
+        if (tecla == TECLA_SETA_CIMA) {
+            cursor = cursor->anterior;
+        } else if (tecla == TECLA_SETA_BAIXO) {
+            cursor = cursor->proximo;
+        } else if (tecla == TECLA_INSERT) {
+            inicio = inserirElemento(inicio);
+            if (inicio != NULL) {
+                cursor = inicio;
             }
+        } else if (tecla == TECLA_DELETE) {
+            Node *proximo = cursor->proximo;
+            printf("Você deseja remover %s? (s/n): ", cursor->nome);
+            char resposta;
+            scanf(" %c", &resposta);
+            if (resposta == 's' || resposta == 'S') {
+                inicio = removerAtual(inicio, cursor);
+                if (inicio == NULL) {
+                    break;
+                }
+                cursor = proximo == cursor ? inicio : proximo;
+            }
+        } else if (tecla == 27) {
+            break;
         }
     }
 
     system("clear");
-    return;
+    return inicio;
 }
 int main(void)
 {
     Node *lista = NULL;
-    int opcao;
-
-    do {
-        printf("\n=== MENU ===\n");
-        printf("1 - Inserir\n");
-        printf("2 - Remover\n");
-        printf("3 - Listar\n");
-        printf("4 - Listar Reverso\n");
-        printf("5 - Navegar\n");
-        printf("0 - Sair\n");
-        printf("Escolha: ");
-        if (scanf("%d", &opcao) != 1) {
-            int c; while ((c = getchar()) != '\n' && c != EOF) {}
-            opcao = -1;
-            continue;
-        }
-        system("clear");
-        switch (opcao) {
-            case 1:  lista = inserirElemento(lista);   break;
-            case 2:  lista = removerElemento(lista);   break;
-            case 3:  listar(lista);            break;
-            case 4:  listarReverso(lista);    break;
-            case 5:  navegar(lista);          break;
-            case 0:  printf("Encerrando...\n"); break;
-            default: printf("Opcao invalida.\n");
-        }
-    } while (opcao != 0);
+    lista = navegar(lista);
+    printf("Encerrando...\n");
     return 0;
 }
