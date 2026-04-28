@@ -7,6 +7,7 @@
 #include <termios.h>
 
 
+int qtd = 0;
 
 typedef struct Node
 {
@@ -55,6 +56,7 @@ Node *inserirElemento(Node *inicio)
 
     if (inicio == NULL)
     {
+        qtd++;
         return novo;
     }
     if (strcmp(nome, inicio->nome) < 0)
@@ -64,6 +66,7 @@ Node *inserirElemento(Node *inicio)
         inicio->anterior->proximo = novo;
         inicio->anterior = novo;
         inicio = novo;
+        qtd++;
         return inicio;
     }
 
@@ -79,7 +82,7 @@ Node *inserirElemento(Node *inicio)
     novo->anterior = atual;                  // novo aponta pra trás
     atual->proximo = novo;                   // o de trás aponta pra frente pro novo
 
-
+    qtd ++;
     return inicio;    
 }
 
@@ -95,6 +98,7 @@ Node *removerPorNome(Node *inicio, const char *nome)
         if (strcmp(atual->nome, nome) == 0) {
             if (atual->proximo == atual) {
                 free(atual);
+                qtd--;
                 return NULL;
             }
 
@@ -106,6 +110,7 @@ Node *removerPorNome(Node *inicio, const char *nome)
             }
 
             free(atual);
+            qtd --;
             return inicio;
         }
 
@@ -124,6 +129,7 @@ Node *removerAtual(Node *inicio, Node *alvo)
 
     if (alvo->proximo == alvo) {
         free(alvo);
+        qtd--;
         return NULL;
     }
 
@@ -135,6 +141,7 @@ Node *removerAtual(Node *inicio, Node *alvo)
     }
 
     free(alvo);
+    qtd --;
     return inicio;
 }
 
@@ -211,23 +218,51 @@ Node *navegar(Node *inicio)
 
     while (1)
     {   
-        system("clear");
-        printf("---------------\n");
-        printf("   Anterior: %s\n", cursor->anterior->nome);
-        printf("   Idade: %d\n", cursor->anterior->idade);
-        printf("   Renda: R$%.2f\n", cursor->anterior->renda);
-        printf("   Prioritário: %s\n", cursor->anterior->prioritario ? "Sim" : "Não");
-        printf("---------------\n");
-        printf(">>  Cursor: %s <<\n", cursor->nome);
-        printf("    Idade: %d\n", cursor->idade);
-        printf("    Renda: R$%.2f\n", cursor->renda);
-        printf("    Prioritário: %s\n", cursor->prioritario ? "Sim" : "Não");
-        printf("---------------\n");
-        printf("   Próximo: %s\n", cursor->proximo->nome);
-        printf("   Idade: %d\n", cursor->proximo->idade);
-        printf("   Renda: R$%.2f\n", cursor->proximo->renda);
-        printf("   Prioritário: %s\n", cursor->proximo->prioritario ? "Sim" : "Não");
-        printf("---------------\n\n");
+        if (qtd == 1)
+        {
+            system("clear");
+            printf("---------------\n");
+            printf(">>  Cursor: %s <<\n", cursor->nome);
+            printf("    Idade: %d\n", cursor->idade);
+            printf("    Renda: R$%.2f\n", cursor->renda);
+            printf("    Prioritário: %s\n", cursor->prioritario ? "Sim" : "Não");
+            printf("---------------\n");
+        }
+        if (qtd == 2)
+        {
+            system("clear");
+            printf("---------------\n");
+            printf("   Anterior: %s\n", cursor->anterior->nome);
+            printf("   Idade: %d\n", cursor->anterior->idade);
+            printf("   Renda: R$%.2f\n", cursor->anterior->renda);
+            printf("   Prioritário: %s\n", cursor->anterior->prioritario ? "Sim" : "Não");
+            printf("---------------\n");
+            printf(">>  Cursor: %s <<\n", cursor->nome);
+            printf("    Idade: %d\n", cursor->idade);
+            printf("    Renda: R$%.2f\n", cursor->renda);
+            printf("    Prioritário: %s\n", cursor->prioritario ? "Sim" : "Não");
+            printf("---------------\n");
+        }
+        if (qtd>=3)
+        {
+            system("clear");
+            printf("---------------\n");
+            printf("   Anterior: %s\n", cursor->anterior->nome);
+            printf("   Idade: %d\n", cursor->anterior->idade);
+            printf("   Renda: R$%.2f\n", cursor->anterior->renda);
+            printf("   Prioritário: %s\n", cursor->anterior->prioritario ? "Sim" : "Não");
+            printf("---------------\n");
+            printf(">>  Cursor: %s <<\n", cursor->nome);
+            printf("    Idade: %d\n", cursor->idade);
+            printf("    Renda: R$%.2f\n", cursor->renda);
+            printf("    Prioritário: %s\n", cursor->prioritario ? "Sim" : "Não");
+            printf("---------------\n");
+            printf("   Próximo: %s\n", cursor->proximo->nome);
+            printf("   Idade: %d\n", cursor->proximo->idade);
+            printf("   Renda: R$%.2f\n", cursor->proximo->renda);
+            printf("   Prioritário: %s\n", cursor->proximo->prioritario ? "Sim" : "Não");
+            printf("---------------\n\n");
+        }
 
         printf("Use as SETAS para navegar | INSERT para inserir | DELETE para remover | Pressione ESC para sair\n");
 
