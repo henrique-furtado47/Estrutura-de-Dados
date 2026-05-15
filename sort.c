@@ -189,17 +189,19 @@ int main()
                 break;
             
             case 4:
-                int contador = 0;
+                contador = 0;
                 inicializar_arquivo(itens, &contador);
                 printf("Lista reincializada\n");
                 break;
             
             case 5:
+            {
                 int trocas = 0;
                 quicksort_codigo(itens, 0, contador - 1, &trocas);
                 printf("\nFoi feito %d trocas\n", trocas);
                 printf("Lista ordenada por código\n");
                 break;
+            }
             case 0:
                 printf("Saindo...\n");
                 break;
