@@ -103,6 +103,55 @@ void ordenar_nome(Item itens[], int *contador)
     }
     printf("\nFoi feito %d trocas\n", trocas);
 }
+
+void quicksort_codigo(Item itens[], int inicio, int fim, int *trocas)
+{
+    if (inicio < fim)
+    {
+        Item pivot = itens[fim];
+        Item temp;
+
+        printf("\n=================================\n");
+        printf("QuickSort de %d até %d\n", inicio, fim);
+        printf("Pivot: %d\n", pivot.codigo);
+
+        int i = inicio - 1;
+
+        for (int j = inicio; j < fim; j++)
+        {
+            printf("Comparando %d com %d\n", itens[j].codigo, pivot.codigo);
+
+            if (itens[j].codigo < pivot.codigo)
+            {
+                i++;
+
+                printf("%d < %d\n", itens[j].codigo, pivot.codigo);
+                printf("Trocando posição...\n");
+
+                temp = itens[i];
+                itens[i] = itens[j];
+                itens[j] = temp;
+
+                (*trocas)++;
+            }
+        }
+
+        printf("Colocando pivot na posição correta...\n");
+
+        temp = itens[i + 1];
+        itens[i + 1] = itens[fim];
+        itens[fim] = temp;
+
+        (*trocas)++;
+
+        int posicao_pivot = i + 1;
+
+        printf("Pivot %d foi para posição %d\n", pivot.codigo, posicao_pivot);
+
+        quicksort_codigo(itens, inicio, posicao_pivot - 1, trocas);
+        quicksort_codigo(itens, posicao_pivot + 1, fim, trocas);
+    }
+}
 int main()
 {   
 
@@ -119,6 +168,7 @@ int main()
         printf("2 - Ordenar por nome\n");
         printf("3 - Ordenar por código\n");
         printf("4 - Reiniciar Lista\n");
+        printf("5 - Quick Sort Código\n");
         printf("0 - Sair\n");
 
         scanf("%d", &opcao);
@@ -142,6 +192,13 @@ int main()
                 int contador = 0;
                 inicializar_arquivo(itens, &contador);
                 printf("Lista reincializada\n");
+                break;
+            
+            case 5:
+                int trocas = 0;
+                quicksort_codigo(itens, 0, contador - 1, &trocas);
+                printf("\nFoi feito %d trocas\n", trocas);
+                printf("Lista ordenada por código\n");
                 break;
             case 0:
                 printf("Saindo...\n");
