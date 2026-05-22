@@ -162,7 +162,7 @@ void quicksort_nome(Item itens[], int inicio, int fim, int *trocas)
 
         printf("\n=================================\n");
         printf("QuickSort de %d até %d\n", inicio, fim);
-        printf("Pivot: %d\n", pivot.nome);
+        printf("Pivot: %s\n", pivot.nome);
 
         int i = inicio - 1;
 
